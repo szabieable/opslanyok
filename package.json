@@ -13,8 +13,6 @@
     "dotenv": "^8.2.0",
     "moment": "^2.29.1",
     "moment-business-days": "^1.2.0",
-    "prompt": "^1.1.0",
     "readline-sync": "^1.4.10",
-    "request": "^2.88.2"
   }
 }
