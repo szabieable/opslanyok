@@ -24,11 +24,17 @@ function getEaster() {
 
 let goodFriday = getEaster().prevBusinessDay().format('MM-DD');
 let easterMonday = getEaster().nextBusinessDay().format('MM-DD');
+let whitMonday = getEaster().add(7, 'w').nextBusinessDay().format('MM-DD');
+
 moment.updateLocale('us', {
-    holidays: ['03-15', '08-20', '01-01', '12-24', '12-25', '10-23', '12-26', '12-31', '05-01', goodFriday, easterMonday],
+    holidays: ['03-15', '08-20', '01-01', '12-24', '12-25', '10-23', '12-26', '12-31', '05-01', goodFriday, easterMonday, whitMonday],
     holidayFormat: 'MM-DD'
 });
 require('dotenv').config()
+if(process.env.APITOKEN === "" || process.env.SUBSCRIPTION === "" || process.env.EMAIL === ""){
+    console.log(".env values are missing")
+    process.exit(1);
+}
 let project = 0;
 let taskid = 0;
 
@@ -40,20 +46,26 @@ axios.defaults.headers.common['User-Agent'] = 'Opslanyok (' + process.env.EMAIL 
         try {
             const response = await axios.get(process.env.SUBSCRIPTION + '/api/v2/projects.json');
             for (var attr in response.data) {
-                console.log(response.data[attr].id + ";" + response.data[attr].name);
+                console.log(response.data[attr].id + "\t" + response.data[attr].name);
             }
         } catch (error) {
             console.log(error);
+            process.exit(1);
         }
     };
     await getProject();
     project = reader.question("Project id: ");
+    if (isNaN(project)){
+        console.log('Invalid project id');
+        project = reader.question("Project id: ");
+    }
     async function getTask() {
         try {
             const response = await axios.get(process.env.SUBSCRIPTION + '/api/v2/projects/' + project + '/tasks.json');
             taskid = response.data[0].id;
         } catch (error) {
             console.log(error);
+            
         }
     };
     await getTask();
@@ -72,17 +84,18 @@ axios.defaults.headers.common['User-Agent'] = 'Opslanyok (' + process.env.EMAIL 
         };
         await axios.post(process.env.SUBSCRIPTION + '/api/v2/entries', data, configAxios)
             .then(function (response) {
-                console.log(response.statusText);
+                return response.statusText;
             })
             .catch(function (error) {
                 console.log(error);
+                process.exit(1);
             });
     };
 
     const startOfMonth = moment().clone().startOf('month').format('YYYY-MM-DD');
     var businessDays = moment(startOfMonth, 'YYYY-MM-DD').monthBusinessDays();
     for (const i of businessDays) {
-        await fillDays(moment(i).format('YYYY-MM-DD'));
-        console.log('Logged for ' + moment(i).format('YYYY-MM-DD'));
+        var result = await fillDays(moment(i).format('YYYY-MM-DD'));
+        console.log('Logged for ' + moment(i).format('YYYY-MM-DD')) + result;
     }
 })()
