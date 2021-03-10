@@ -2,7 +2,6 @@ const dotenv = require('dotenv')
 const axios = require("axios");
 const reader = require("readline-sync");
 var moment = require('moment-business-days');
-var _ = require('lodash');
 
 function getEaster() {
     var f = Math.floor,
